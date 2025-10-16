@@ -1,0 +1,54 @@
+spring:
+  application:
+    name: hexagonal-order-service
+  
+  datasource:
+    url: jdbc:postgresql://localhost:5432/hexagonal_db
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+  
+  cloud:
+    aws:
+      region:
+        static: ${AWS_REGION:us-east-1}
+      credentials:
+        access-key: ${AWS_ACCESS_KEY_ID:}
+        secret-key: ${AWS_SECRET_ACCESS_KEY:}
+      sqs:
+        queue-name: ${SQS_QUEUE_NAME:order-events}
+
+server:
+  port: ${PORT:8080}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    com.example.hexagonal: INFO
+    org.springframework.cloud.aws: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+datadog:
+  trace:
+    enabled: true
+    service: hexagonal-order-service
+    env: ${DD_ENV:development}
+    version: ${DD_VERSION:1.0.0}
