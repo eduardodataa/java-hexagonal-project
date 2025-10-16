@@ -25,6 +25,7 @@ spring:
         secret-key: test
       sqs:
         queue-name: test-order-events
+        command-queue-name: test-order-commands
 
 logging:
   level:

@@ -1,12 +1,18 @@
 spring:
   application:
-    name: hexagonal-order-service
+    name: hexagonal-debit-service
   
   datasource:
     url: jdbc:postgresql://localhost:5432/hexagonal_db
     username: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 50
+      minimum-idle: 10
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
   
   jpa:
     hibernate:
@@ -16,6 +22,11 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
+        jdbc:
+          batch_size: 50
+        order_inserts: true
+        order_updates: true
+        batch_versioned_data: true
   
   cloud:
     aws:
@@ -25,30 +36,67 @@ spring:
         access-key: ${AWS_ACCESS_KEY_ID:}
         secret-key: ${AWS_SECRET_ACCESS_KEY:}
       sqs:
-        queue-name: ${SQS_QUEUE_NAME:order-events}
+        queue-name: ${SQS_QUEUE_NAME:debit-events}
+        command-queue-name: ${SQS_COMMAND_QUEUE_NAME:debit-commands}
+      dynamodb:
+        table-name: ${DYNAMODB_TABLE_NAME:debit-transactions}
+  
+  cache:
+    type: caffeine
+    caffeine:
+      spec: maximumSize=100000,expireAfterWrite=30m
+  
+  redis:
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
+    timeout: 2000ms
+    lettuce:
+      pool:
+        max-active: 20
+        max-idle: 10
+        min-idle: 5
 
 server:
   port: ${PORT:8080}
+  tomcat:
+    threads:
+      max: 200
+      min-spare: 10
+    max-connections: 8192
+    accept-count: 100
+    connection-timeout: 20000
 
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus
+        include: health,info,metrics,prometheus,threaddump,heapdump
   endpoint:
     health:
       show-details: always
+  metrics:
+    export:
+      prometheus:
+        enabled: true
 
 logging:
   level:
     com.example.hexagonal: INFO
-    org.springframework.cloud.aws: DEBUG
+    org.springframework.cloud.aws: WARN
+    org.hibernate.SQL: WARN
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
 
 datadog:
   trace:
     enabled: true
-    service: hexagonal-order-service
+    service: hexagonal-debit-service
     env: ${DD_ENV:development}
     version: ${DD_VERSION:1.0.0}
+
+debit:
+  performance:
+    batch-size: 100
+    max-retry-attempts: 3
+    retry-delay-seconds: 60
+    processing-timeout-seconds: 30

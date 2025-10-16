@@ -18,6 +18,7 @@ services:
       - AWS_ACCESS_KEY_ID=test
       - AWS_SECRET_ACCESS_KEY=test
       - SQS_QUEUE_NAME=order-events
+      - SQS_COMMAND_QUEUE_NAME=order-commands
     depends_on:
       - postgres
       - localstack
