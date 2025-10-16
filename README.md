@@ -33,7 +33,6 @@ src/main/java/com/example/hexagonal/
 | **Java** | 21 (Amazon Corretto) | Linguagem principal |
 | **Spring Boot** | 3.3+ | Framework base |
 | **Spring Cloud AWS** | 3.1.0 | Integração AWS |
-| **PostgreSQL** | 15+ | Banco de dados principal |
 | **DynamoDB** | - | Banco NoSQL (mock inicial) |
 | **AWS SQS** | - | **Comunicação exclusiva** |
 | **Redis** | - | Cache distribuído |
@@ -47,9 +46,9 @@ src/main/java/com/example/hexagonal/
 **Capacidade**: **14 milhões de transações/mês**
 - **~540 transações/segundo** (pico)
 - **Thread pools otimizados** (200 threads máx)
-- **Connection pooling** (50 conexões PostgreSQL)
 - **Cache distribuído** (Redis + Caffeine)
-- **Batch processing** (50 registros por lote)
+- **Processamento assíncrono** (SQS)
+- **Batch processing** (100 transações/lote)
 - **Async processing** para alta throughput
 
 ## 📋 Pré-requisitos
@@ -228,8 +227,6 @@ docker run -p 8080:8080 hexagonal-debit-service
 
 | Variável | Descrição | Padrão |
 |----------|-----------|--------|
-| `DB_USERNAME` | Usuário do banco | `postgres` |
-| `DB_PASSWORD` | Senha do banco | `postgres` |
 | `AWS_REGION` | Região AWS | `us-east-1` |
 | `AWS_ACCESS_KEY_ID` | Chave de acesso AWS | - |
 | `AWS_SECRET_ACCESS_KEY` | Chave secreta AWS | - |

@@ -1,0 +1,69 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      platforms:
+        - linux/amd64
+        - linux/arm64
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - AWS_REGION=us-east-1
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - SQS_QUEUE_NAME=debit-events
+      - SQS_COMMAND_QUEUE_NAME=debit-commands
+      - DD_AGENT_HOST=datadog-agent
+      - DD_ENV=development
+      - DD_VERSION=1.0.0
+      - DD_SERVICE=hexagonal-debit-service
+      - DD_TRACE_ENABLED=true
+    depends_on:
+      - localstack
+      - datadog-agent
+    networks:
+      - hexagonal-network
+
+  localstack:
+    image: localstack/localstack:latest
+    environment:
+      - SERVICES=sqs
+      - DEBUG=1
+      - DATA_DIR=/tmp/localstack/data
+    ports:
+      - "4566:4566"
+    volumes:
+      - localstack_data:/tmp/localstack
+    networks:
+      - hexagonal-network
+
+  datadog-agent:
+    image: datadog/agent:latest
+    environment:
+      - DD_API_KEY=${DD_API_KEY}
+      - DD_SITE=datadoghq.com
+      - DD_APM_ENABLED=true
+      - DD_LOGS_ENABLED=true
+      - DD_PROCESS_AGENT_ENABLED=true
+      - DD_DOCKER_LABELS_AS_TAGS={"*":"%%label%%"}
+      - DD_CONTAINER_LABELS_AS_TAGS={"*":"%%label%%"}
+    ports:
+      - "8126:8126"  # APM
+      - "8125:8125/udp"  # StatsD
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /proc/:/host/proc/:ro
+      - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    networks:
+      - hexagonal-network
+
+volumes:
+  localstack_data:
+
+networks:
+  hexagonal-network:
+    driver: bridge

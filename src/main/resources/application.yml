@@ -2,32 +2,6 @@ spring:
   application:
     name: hexagonal-debit-service
   
-  datasource:
-    url: jdbc:postgresql://localhost:5432/hexagonal_db
-    username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:postgres}
-    driver-class-name: org.postgresql.Driver
-    hikari:
-      maximum-pool-size: 50
-      minimum-idle: 10
-      connection-timeout: 30000
-      idle-timeout: 600000
-      max-lifetime: 1800000
-  
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: false
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-        format_sql: true
-        jdbc:
-          batch_size: 50
-        order_inserts: true
-        order_updates: true
-        batch_versioned_data: true
-  
   cloud:
     aws:
       region:
@@ -83,7 +57,6 @@ logging:
   level:
     com.example.hexagonal: INFO
     org.springframework.cloud.aws: WARN
-    org.hibernate.SQL: WARN
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
 

@@ -6,7 +6,7 @@ import com.example.hexagonal.domain.model.TransactionStatus;
 import com.example.hexagonal.domain.port.EventPublisher;
 import com.example.hexagonal.domain.port.DebitTransactionRepository;
 import com.example.hexagonal.domain.port.DebitTransactionService;
-import com.example.hexagonal.infrastructure.observability.OrderMetrics;
+import com.example.hexagonal.infrastructure.observability.DebitTransactionMetrics;
 import io.micrometer.core.instrument.Timer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,13 +22,13 @@ public class DebitTransactionServiceImpl implements DebitTransactionService {
     
     private final DebitTransactionRepository transactionRepository;
     private final EventPublisher eventPublisher;
-    private final OrderMetrics orderMetrics;
+    private final DebitTransactionMetrics debitTransactionMetrics;
     
     @Override
     public DebitTransaction createDebitTransaction(String companyId, String companyDocument, String companyName, 
                                                   String bankAccountId, BigDecimal amount, String description, 
                                                   LocalDateTime scheduledDate, String correlationId) {
-        Timer.Sample sample = orderMetrics.startOrderProcessingTimer();
+        Timer.Sample sample = debitTransactionMetrics.startDebitTransactionCreationTimer();
         
         try {
             DebitTransaction transaction = DebitTransaction.builder()
@@ -61,11 +61,11 @@ public class DebitTransactionServiceImpl implements DebitTransactionService {
                     .build();
             
             eventPublisher.publish(event);
-            orderMetrics.recordOrderCreated();
+            debitTransactionMetrics.recordDebitTransactionCreated();
             
             return savedTransaction;
         } finally {
-            orderMetrics.recordOrderProcessingTime(sample);
+            debitTransactionMetrics.recordDebitTransactionCreationTime(sample);
         }
     }
     
@@ -95,7 +95,7 @@ public class DebitTransactionServiceImpl implements DebitTransactionService {
                 .build();
         
         eventPublisher.publish(event);
-        orderMetrics.recordOrderStatusUpdated();
+        debitTransactionMetrics.recordDebitTransactionProcessed();
         
         return updatedTransaction;
     }
